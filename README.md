@@ -27,10 +27,42 @@ Both players use the **same underlying Gemma model**. Differentiation via prompt
 Columns `a`–`i` (left to right), rows `1`–`9` (top to bottom). Examples: `e5` (center star
 point), `pass`. Regex: `^([a-i][1-9]|pass)$`.
 
-## Results
+## Results: 100-game balanced tournament
 
-Tournament results will be added here after the 100-game balanced run completes (see
-`simulate.py`).
+100 games with balanced color assignment (50 Quick=Black, 50 Thinker=Black), concurrency 20,
+7.5 komi, 200-move safety cap. Wall-clock: ~101 minutes.
+
+| Outcome | Count | Share (of 96 valid) |
+|---|---|---|
+| ○ **Thinker wins** | **60** | **62.5%** |
+| ● Quick wins | 36 | 37.5% |
+| 🤝 Draws | 0 | 0% (komi 7.5 guarantees no ties) |
+| ⚠ Errors | 4 | — (all `ReadTimeout` after 90s) |
+
+**Thinker dominates Go with nearly 2:1 odds vs. Quick.** Unlike shogi (where the CoT couldn't
+translate into mate), Go's area-score objective rewards patient territorial play — which is exactly
+what the Thinker prompt encourages. The "intuitive" Quick agent makes locally plausible moves but
+loses on global shape evaluation.
+
+### Breakdown by color
+
+| Black side | Games | Quick wins | Thinker wins |
+|---|---|---|---|
+| Quick = Black | 49 | 15 (31%) | 34 (69%) |
+| Thinker = Black | 47 | 21 (45%) | 26 (55%) |
+
+Thinker wins regardless of color, but its margin is much larger when it plays White (gote). Black's
+"first move" advantage is nearly cancelled by 7.5 komi, so the real driver is playing style.
+
+### Performance
+
+- Total API calls: 17,089
+- Avg latency: 6.56 s
+- Throughput: 2.8 calls/s
+- Retries: 757 (4.4% — Gemma occasionally suggests already-occupied points or ko violations)
+- Fallbacks: 25 (retries exhausted → first legal non-pass move)
+- Timeouts: 4 (all `ReadTimeout` after 90 s)
+- Avg game length: 170 moves (played to 200-move cap or two-pass)
 
 ## Quick start
 
